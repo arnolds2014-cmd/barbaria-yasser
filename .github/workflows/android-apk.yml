@@ -48,7 +48,7 @@ jobs:
         run: |
           chmod +x android/gradlew
           cd android
-          ./gradlew assembleDebug -PreactNativeArchitectures=armeabi-v7a --max-workers=2 --console=plain
+          ./gradlew assembleDebug -PstandaloneDebug=true -PreactNativeArchitectures=armeabi-v7a --max-workers=2 --console=plain
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
