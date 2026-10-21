@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "Barbería Yasser - Sistema Contable"
+version = "1.0.0"
+id = "artifacts/barberia-yasser"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/" ]
+localPort = 25631
+
+[services.development]
+run = "pnpm --filter @workspace/barberia-yasser run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/barberia-yasser", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/barberia-yasser", "run", "serve" ]
+
+[services.env]
+PORT = "25631"
+BASE_PATH = "/"
