@@ -50,11 +50,16 @@ function ClassicTabLayout() {
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: true,
-        headerStyle: { backgroundColor: 'rgba(8,4,2,0.95)' },
+        headerStyle: {
+          backgroundColor: 'rgba(8,4,2,0.95)',
+          ...(Platform.OS === "android" ? { height: 45 } : {}),
+        },
+        headerTitleStyle: { fontSize: 16 },
+        headerRightContainerStyle: { paddingRight: 8 },
         headerTintColor: colors.gold,
         headerRight: () => (
           <TouchableOpacity
-            style={{ marginRight: 16, flexDirection: 'row', alignItems: 'center', gap: 4 }}
+            style={{ marginRight: 8, flexDirection: 'row', alignItems: 'center', gap: 4 }}
             onPress={() => router.push('/pos')}
           >
             <Feather name="shopping-cart" size={18} color={colors.gold} />
@@ -66,6 +71,7 @@ function ClassicTabLayout() {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           elevation: 0,
+          ...(Platform.OS === "android" ? { height: 54, paddingTop: 4, paddingBottom: 4 } : {}),
           ...(isWeb ? { height: 84 } : {}),
         },
         tabBarBackground: () =>

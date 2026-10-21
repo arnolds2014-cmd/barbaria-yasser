@@ -3,7 +3,7 @@
     "name": "Barbería Yasser",
     "slug": "barberia-yasser",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "barberia-yasser",
     "userInterfaceStyle": "dark",
