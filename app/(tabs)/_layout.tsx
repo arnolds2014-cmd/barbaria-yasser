@@ -61,10 +61,12 @@ function ClassicTabLayout() {
         headerTintColor: colors.gold,
         headerRight: () => (
           <TouchableOpacity
-            style={{ marginRight: 8, flexDirection: 'row', alignItems: 'center', gap: 4 }}
+            accessibilityLabel="Abrir punto de venta"
+            hitSlop={8}
+            style={{ marginRight: 8, flexDirection: 'row', alignItems: 'center', gap: 4, transform: [{ translateY: 6 }] }}
             onPress={() => router.push('/pos')}
           >
-            <Feather name="shopping-cart" size={18} color={colors.gold} />
+            <Feather name="shopping-cart" size={20} color={colors.gold} />
           </TouchableOpacity>
         ),
         tabBarStyle: {

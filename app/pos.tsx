@@ -40,6 +40,11 @@ export default function POSScreen() {
   const [gastocat, setGastoCat] = useState('Compra');
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
+  const modalBottomPadding = Platform.OS === 'web'
+    ? 0
+    : Platform.OS === 'android'
+      ? Math.max(insets.bottom, 48)
+      : insets.bottom;
 
   const addToCart = (p: Product) => {
     setCart(prev => {
@@ -136,14 +141,14 @@ export default function POSScreen() {
 
         <Modal visible={openModal} animationType="slide" transparent>
           <KeyboardAvoidingView
-            style={[s.overlay, { paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom }]}
+            style={[s.overlay, s.openCashOverlay]}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <View style={s.modal}>
+            <View style={[s.modal, s.openCashModal]}>
               <Text style={s.modalTitle}>Apertura de Caja</Text>
               <Text style={s.label}>Monto de Apertura (L)</Text>
               <TextInput style={s.input} value={openingAmt} onChangeText={setOpeningAmt} keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.mutedForeground} />
-              <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.positive }]} onPress={handleOpen}>
+              <TouchableOpacity style={[s.modalBtn, s.openCashButton, { backgroundColor: colors.positive }]} onPress={handleOpen}>
                 <Text style={s.modalBtnTxt}>Abrir Caja</Text>
               </TouchableOpacity>
             </View>
@@ -152,7 +157,7 @@ export default function POSScreen() {
 
         {view === 'historial' && (
           <Modal visible animationType="slide" transparent>
-            <View style={[s.overlay, { justifyContent: 'flex-end', paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom }]}>
+            <View style={[s.overlay, { justifyContent: 'flex-end', paddingBottom: modalBottomPadding }]}>
               <View style={[s.modal, { maxHeight: '80%' }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
                   <Text style={s.modalTitle}>Historial de Cajas</Text>
@@ -345,7 +350,7 @@ export default function POSScreen() {
 
       <Modal visible={closeModal} animationType="slide" transparent>
         <KeyboardAvoidingView
-          style={[s.overlay, { paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom }]}
+          style={[s.overlay, { paddingBottom: modalBottomPadding }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={s.modal}>
@@ -452,6 +457,9 @@ const makeStyles = (colors: ReturnType<typeof import('@/hooks/useColors').useCol
   sessMeta: { fontFamily: 'Inter_400Regular', fontSize: 12, marginBottom: 2 },
   noData: { fontFamily: 'Inter_400Regular', fontSize: 13, fontStyle: 'italic', marginBottom: 16 },
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
+  openCashOverlay: { justifyContent: 'center', paddingHorizontal: 20 },
+  openCashModal: { width: '100%', maxHeight: '85%', borderRadius: 24 },
+  openCashButton: { flex: 0, minHeight: 52, alignSelf: 'stretch', marginTop: 16 },
   scannerScreen: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   scannerHeader: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   scannerTitle: { color: '#fff', fontFamily: 'Inter_700Bold', fontSize: 18 },
