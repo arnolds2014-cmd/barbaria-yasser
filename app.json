@@ -17,16 +17,34 @@
       "supportsTablet": false
     },
     "android": {
-      "package": "com.barberiayasser.app"
+      "package": "com.barberiayasser.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#101b25"
+      }
     },
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/icon.png",
+      "name": "Barbería Yasser",
+      "shortName": "Barbería Yasser",
+      "lang": "es",
+      "themeColor": "#101b25",
+      "backgroundColor": "#101b25",
+      "output": "static"
     },
     "plugins": [
       [
         "expo-router",
         {
           "origin": "https://replit.com/"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir que Barbería Yasser use la cámara para escanear códigos de barras.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       "expo-font",

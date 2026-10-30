@@ -21,15 +21,16 @@ export default function InventarioScreen() {
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [category, setCategory] = useState('Servicios');
+  const [barcode, setBarcode] = useState('');
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
-  const openAdd = () => { setEditing(null); setName(''); setPrice(''); setQuantity(''); setCategory('Servicios'); setModalVisible(true); };
-  const openEdit = (p: Product) => { setEditing(p); setName(p.name); setPrice(p.price.toString()); setQuantity(p.quantity.toString()); setCategory(p.category); setModalVisible(true); };
+  const openAdd = () => { setEditing(null); setName(''); setPrice(''); setQuantity(''); setCategory('Servicios'); setBarcode(''); setModalVisible(true); };
+  const openEdit = (p: Product) => { setEditing(p); setName(p.name); setPrice(p.price.toString()); setQuantity(p.quantity.toString()); setCategory(p.category); setBarcode(p.barcode ?? ''); setModalVisible(true); };
 
   const handleSave = () => {
     if (!name || !price) return;
-    const data = { name, price: parseFloat(price), quantity: parseInt(quantity) || 0, category };
+    const data = { name, price: parseFloat(price), quantity: parseInt(quantity) || 0, category, barcode: barcode.trim() || undefined };
     if (editing) updateProduct(editing.id, data);
     else addProduct(data);
     setModalVisible(false);
@@ -103,20 +104,24 @@ export default function InventarioScreen() {
                 <Feather name="x" size={22} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
-            <Text style={s.label}>Nombre</Text>
-            <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Nombre del producto" placeholderTextColor={colors.mutedForeground} />
-            <Text style={s.label}>Precio (L)</Text>
-            <TextInput style={s.input} value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.mutedForeground} />
-            <Text style={s.label}>Cantidad</Text>
-            <TextInput style={s.input} value={quantity} onChangeText={setQuantity} keyboardType="numeric" placeholder="0" placeholderTextColor={colors.mutedForeground} />
-            <Text style={s.label}>Categoría</Text>
-            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
-              {['Servicios', 'Productos'].map(c => (
-                <TouchableOpacity key={c} style={[s.catBtn, category === c && { backgroundColor: colors.gold + '33', borderColor: colors.gold }]} onPress={() => setCategory(c)}>
-                  <Text style={[s.catBtnTxt, { color: category === c ? colors.gold : colors.mutedForeground }]}>{c}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <Text style={s.label}>Nombre</Text>
+              <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Nombre del producto" placeholderTextColor={colors.mutedForeground} />
+              <Text style={s.label}>Precio (L)</Text>
+              <TextInput style={s.input} value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.mutedForeground} />
+              <Text style={s.label}>Cantidad</Text>
+              <TextInput style={s.input} value={quantity} onChangeText={setQuantity} keyboardType="numeric" placeholder="0" placeholderTextColor={colors.mutedForeground} />
+              <Text style={s.label}>Código de barras (opcional)</Text>
+              <TextInput style={s.input} value={barcode} onChangeText={setBarcode} autoCapitalize="characters" placeholder="Escanea o escribe el código" placeholderTextColor={colors.mutedForeground} />
+              <Text style={s.label}>Categoría</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
+                {['Servicios', 'Productos'].map(c => (
+                  <TouchableOpacity key={c} style={[s.catBtn, category === c && { backgroundColor: colors.gold + '33', borderColor: colors.gold }]} onPress={() => setCategory(c)}>
+                    <Text style={[s.catBtnTxt, { color: category === c ? colors.gold : colors.mutedForeground }]}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
             <TouchableOpacity style={[s.saveBtn, { backgroundColor: colors.gold }]} onPress={handleSave}>
               <Text style={[s.saveTxt, { color: colors.background }]}>Guardar</Text>
             </TouchableOpacity>
@@ -137,7 +142,7 @@ const makeStyles = (colors: ReturnType<typeof import('@/hooks/useColors').useCol
   productMeta: { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors.mutedForeground, marginTop: 2 },
   productVal: { fontFamily: 'Inter_700Bold', fontSize: 14 },
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
-  modal: { backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
+  modal: { backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   modalTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', color: colors.foreground },
   label: { fontSize: 12, fontFamily: 'Inter_500Medium', color: colors.mutedForeground, marginBottom: 6, marginTop: 12, textTransform: 'uppercase' },

@@ -6,6 +6,7 @@ import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, TouchableOpacity, View, useColorScheme } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 
@@ -25,7 +26,7 @@ function NativeTabLayout() {
         <Label>Balances</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="cuentas">
-        <Icon sf={{ default: "list.bullet", selected: "list.bullet.fill" }} />
+        <Icon sf={{ default: "list.bullet", selected: "list.bullet" }} />
         <Label>Cuentas</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="perfil">
@@ -38,6 +39,7 @@ function NativeTabLayout() {
 
 function ClassicTabLayout() {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
@@ -71,7 +73,9 @@ function ClassicTabLayout() {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           elevation: 0,
-          ...(Platform.OS === "android" ? { height: 54, paddingTop: 4, paddingBottom: 4 } : {}),
+          ...(Platform.OS === "android"
+            ? { height: 54 + insets.bottom, paddingTop: 4, paddingBottom: insets.bottom + 4 }
+            : {}),
           ...(isWeb ? { height: 84 } : {}),
         },
         tabBarBackground: () =>

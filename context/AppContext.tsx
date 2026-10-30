@@ -28,6 +28,7 @@ export interface Product {
   price: number;
   quantity: number;
   category: string;
+  barcode?: string;
 }
 
 export interface CashSession {

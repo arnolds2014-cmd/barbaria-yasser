@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_REPL_ID=$REPL_ID REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN pnpm exec expo start --localhost --port $PORT",
     "build": "node scripts/build.js",
+    "build:web": "expo export --platform web --output-dir dist",
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "android": "expo run:android",
@@ -59,6 +60,7 @@
   "dependencies": {
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.37",
+    "expo-camera": "~17.0.10",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-keyboard-controller": "1.18.5"

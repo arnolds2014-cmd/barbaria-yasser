@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp, Product } from '@/context/AppContext';
@@ -25,8 +26,11 @@ export default function POSScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { products, currentSession, openCashSession, closeCashSession, addPOSSale, addPOSExpense, cashSessions } = useApp();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [view, setView] = useState<POSView>('main');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [manualBarcode, setManualBarcode] = useState('');
   const [openingAmt, setOpeningAmt] = useState('');
   const [closingAmt, setClosingAmt] = useState('');
   const [openModal, setOpenModal] = useState(false);
@@ -43,6 +47,29 @@ export default function POSScreen() {
       if (existing) return prev.map(c => c.productId === p.id ? { ...c, quantity: c.quantity + 1 } : c);
       return [...prev, { productId: p.id, productName: p.name, price: p.price, quantity: 1 }];
     });
+  };
+
+  const addProductByBarcode = (barcode: string) => {
+    const code = barcode.trim();
+    if (!code) return;
+    const product = products.find(p => p.barcode?.trim() === code);
+    if (!product) {
+      Alert.alert('Producto no encontrado', 'Agrega este código de barras al producto desde Inventario.');
+      return;
+    }
+    addToCart(product);
+    setManualBarcode('');
+  };
+
+  const startScanner = async () => {
+    if (!cameraPermission?.granted) {
+      const permission = await requestCameraPermission();
+      if (!permission.granted) {
+        Alert.alert('Permiso de cámara', 'Permite el acceso a la cámara para escanear códigos de barras.');
+        return;
+      }
+    }
+    setScannerVisible(true);
   };
 
   const removeFromCart = (id: string) => setCart(prev => prev.filter(c => c.productId !== id));
@@ -108,7 +135,10 @@ export default function POSScreen() {
         </View>
 
         <Modal visible={openModal} animationType="slide" transparent>
-          <KeyboardAvoidingView style={s.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <KeyboardAvoidingView
+            style={[s.overlay, { paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom }]}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
             <View style={s.modal}>
               <Text style={s.modalTitle}>Apertura de Caja</Text>
               <Text style={s.label}>Monto de Apertura (L)</Text>
@@ -122,7 +152,7 @@ export default function POSScreen() {
 
         {view === 'historial' && (
           <Modal visible animationType="slide" transparent>
-            <View style={[s.overlay, { justifyContent: 'flex-end' }]}>
+            <View style={[s.overlay, { justifyContent: 'flex-end', paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom }]}>
               <View style={[s.modal, { maxHeight: '80%' }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
                   <Text style={s.modalTitle}>Historial de Cajas</Text>
@@ -204,6 +234,25 @@ export default function POSScreen() {
           <View style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 200 }} showsVerticalScrollIndicator={false}>
               <Text style={s.sectionLabel}>Productos y Servicios</Text>
+              <TouchableOpacity style={[s.scanBtn, { borderColor: colors.gold }]} onPress={startScanner}>
+                <Feather name="camera" size={18} color={colors.gold} />
+                <Text style={[s.scanBtnTxt, { color: colors.gold }]}>Escanear código de barras</Text>
+              </TouchableOpacity>
+              <View style={s.barcodeRow}>
+                <TextInput
+                  style={[s.input, s.barcodeInput]}
+                  value={manualBarcode}
+                  onChangeText={setManualBarcode}
+                  autoCapitalize="characters"
+                  placeholder="O escribe el código"
+                  placeholderTextColor={colors.mutedForeground}
+                  returnKeyType="done"
+                  onSubmitEditing={() => addProductByBarcode(manualBarcode)}
+                />
+                <TouchableOpacity style={[s.barcodeAddBtn, { backgroundColor: colors.gold }]} onPress={() => addProductByBarcode(manualBarcode)}>
+                  <Text style={[s.barcodeAddTxt, { color: colors.background }]}>Agregar</Text>
+                </TouchableOpacity>
+              </View>
               <View style={s.productsGrid}>
                 {products.map(p => (
                   <TouchableOpacity key={p.id} style={[s.productCard, { backgroundColor: 'rgba(20,10,5,0.85)', borderColor: colors.border }]} onPress={() => addToCart(p)}>
@@ -295,7 +344,10 @@ export default function POSScreen() {
       </View>
 
       <Modal visible={closeModal} animationType="slide" transparent>
-        <KeyboardAvoidingView style={s.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView
+          style={[s.overlay, { paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom }]}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
           <View style={s.modal}>
             <Text style={s.modalTitle}>Cierre de Caja</Text>
             <Text style={[s.closeSummary, { color: colors.mutedForeground }]}>Saldo esperado: {formatLempira(sessionCash)}</Text>
@@ -316,6 +368,29 @@ export default function POSScreen() {
             </View>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+      <Modal visible={scannerVisible} animationType="slide" onRequestClose={() => setScannerVisible(false)}>
+        <View style={[s.scannerScreen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+          <CameraView
+            style={StyleSheet.absoluteFill}
+            facing="back"
+            barcodeScannerSettings={{
+              barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39', 'itf14'],
+            }}
+            onBarcodeScanned={({ data }) => {
+              setScannerVisible(false);
+              addProductByBarcode(data);
+            }}
+          />
+          <View style={[s.scannerHeader, { top: insets.top }]}>
+            <Text style={s.scannerTitle}>Escanear producto</Text>
+            <TouchableOpacity style={s.scannerClose} onPress={() => setScannerVisible(false)}>
+              <Feather name="x" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <View style={s.scanTarget} />
+          <Text style={s.scannerHint}>Centra el código de barras dentro del recuadro</Text>
+        </View>
       </Modal>
     </BackgroundImage>
   );
@@ -342,6 +417,12 @@ const makeStyles = (colors: ReturnType<typeof import('@/hooks/useColors').useCol
   viewTab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10 },
   viewTabTxt: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
   sectionLabel: { fontSize: 12, fontFamily: 'Inter_700Bold', color: colors.gold, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  scanBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12, borderWidth: 1, borderRadius: 10, marginBottom: 8 },
+  scanBtnTxt: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  barcodeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+  barcodeInput: { flex: 1, marginTop: 0 },
+  barcodeAddBtn: { paddingHorizontal: 14, paddingVertical: 13, borderRadius: 10 },
+  barcodeAddTxt: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
   productsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   productCard: { width: '47%', padding: 14, borderRadius: 12, borderWidth: 1, alignItems: 'center', gap: 6 },
   productCardName: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: colors.foreground, textAlign: 'center' },
@@ -371,6 +452,12 @@ const makeStyles = (colors: ReturnType<typeof import('@/hooks/useColors').useCol
   sessMeta: { fontFamily: 'Inter_400Regular', fontSize: 12, marginBottom: 2 },
   noData: { fontFamily: 'Inter_400Regular', fontSize: 13, fontStyle: 'italic', marginBottom: 16 },
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
+  scannerScreen: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
+  scannerHeader: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  scannerTitle: { color: '#fff', fontFamily: 'Inter_700Bold', fontSize: 18 },
+  scannerClose: { padding: 8 },
+  scanTarget: { width: '82%', height: 190, borderWidth: 2, borderColor: '#f5c542', borderRadius: 16, backgroundColor: 'transparent' },
+  scannerHint: { color: '#fff', fontFamily: 'Inter_500Medium', fontSize: 14, textAlign: 'center', marginTop: 24, paddingHorizontal: 24 },
   modal: { backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
   modalTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', color: colors.foreground, marginBottom: 4 },
   closeSummary: { fontSize: 13, fontFamily: 'Inter_400Regular', marginBottom: 4 },
